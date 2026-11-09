@@ -1,0 +1,96 @@
+CREATE DATABASE IF NOT EXISTS pncp_controladoria;
+USE pncp_controladoria;
+
+-- Limpeza preventiva para recriação limpa
+DROP TABLE IF EXISTS fato_item_contratado;
+DROP TABLE IF EXISTS dim_orgao;
+DROP TABLE IF EXISTS dim_fornecedor;
+DROP TABLE IF EXISTS dim_modalidade;
+DROP TABLE IF EXISTS dim_localidade;
+
+-- 1. DIMENSÃO ÓRGÃO (363 linhas esperadas)
+CREATE TABLE dim_orgao (
+    sk_orgao INT AUTO_INCREMENT PRIMARY KEY,
+    cnpj_orgao VARCHAR(14) NOT NULL UNIQUE,
+    nome_orgao VARCHAR(255) NOT NULL,
+    poder VARCHAR(50) NOT NULL
+);
+
+-- 2. DIMENSÃO FORNECEDOR (~2.652 linhas esperadas)
+CREATE TABLE dim_fornecedor (
+    sk_fornecedor INT AUTO_INCREMENT PRIMARY KEY,
+    ni_fornecedor VARCHAR(14) NOT NULL UNIQUE,
+    nome_fornecedor VARCHAR(255) NOT NULL,
+    tipo_pessoa VARCHAR(20),
+    porte VARCHAR(50)
+);
+
+-- 3. DIMENSÃO MODALIDADE (7 linhas esperadas)
+CREATE TABLE dim_modalidade (
+    sk_modalidade INT AUTO_INCREMENT PRIMARY KEY,
+    modalidade_id INT NOT NULL UNIQUE,
+    nome_modalidade VARCHAR(100) NOT NULL
+);
+
+-- 4. DIMENSÃO LOCALIDADE (27 linhas esperadas)
+CREATE TABLE dim_localidade (
+    sk_localidade INT AUTO_INCREMENT PRIMARY KEY,
+    uf_sigla VARCHAR(2) NOT NULL UNIQUE,
+    uf_nome VARCHAR(50) NOT NULL,
+    regiao VARCHAR(20) NOT NULL
+);
+
+-- INSERÇÃO DA LINHA 'NÃO INFORMADO' (-1) PARA EVITAR FK SOLTA
+INSERT INTO dim_orgao (sk_orgao, cnpj_orgao, nome_orgao, poder) VALUES (-1, '00000000000000', 'Não Informado', 'Não informado');
+INSERT INTO dim_fornecedor (sk_orgao, ni_fornecedor, nome_fornecedor, tipo_pessoa, porte) VALUES (-1, '00000000000000', 'Não Informado', 'Não informado', 'Não informado'); -- Ajustado para ni_fornecedor
+-- (Correção pontual para garantir o campo correto na dim_fornecedor):
+DELETE FROM dim_fornecedor WHERE sk_orgao = -1;
+INSERT INTO dim_fornecedor (sk_fornecedor, ni_fornecedor, nome_fornecedor, tipo_pessoa, porte) VALUES (-1, '00000000000000', 'Não Informado', 'Não informado', 'Não informado');
+
+INSERT INTO dim_modalidade (sk_modalidade, modalidade_id, nome_modalidade) VALUES (-1, -1, 'Não Informado');
+INSERT INTO dim_localidade (sk_localidade, uf_sigla, uf_nome, regiao) VALUES (-1, 'NI', 'Não Informado', 'Não Informado');
+
+-- 5. TABELA FATO (6.126 linhas esperadas)
+CREATE TABLE fato_item_contratado (
+    sk_fato INT AUTO_INCREMENT PRIMARY KEY,
+    numero_controle_pncp VARCHAR(50) NOT NULL,
+    numero_item INT NOT NULL,
+    
+    -- Chaves Estrangeiras (FKs)
+    sk_orgao INT NOT NULL DEFAULT -1,
+    sk_fornecedor INT NOT NULL DEFAULT -1,
+    sk_modalidade INT NOT NULL DEFAULT -1,
+    sk_localidade INT NOT NULL DEFAULT -1,
+    
+    -- Datas
+    data_publicacao DATE NOT NULL,
+    data_homologacao DATE NULL,
+    
+    -- Detalhes do Item
+    descricao_item TEXT,
+    perfil_gasto VARCHAR(50) NOT NULL,
+    
+    -- Métricas Numéricas
+    quantidade DECIMAL(18,4) NOT NULL,
+    valor_unitario_estimado DECIMAL(18,4) NOT NULL,
+    valor_unitario_homologado DECIMAL(18,4) NOT NULL,
+    valor_total_estimado DECIMAL(18,2) NOT NULL,
+    valor_total_homologado DECIMAL(18,2) NOT NULL,
+    
+    -- Atributos Calculados
+    comparavel TINYINT NOT NULL DEFAULT 0,
+    economia_valor DECIMAL(18,2) NULL,
+    dias_ciclo INT NULL,
+    
+    -- Constraints de Integridade
+    CONSTRAINT unq_item UNIQUE (numero_controle_pncp, numero_item),
+    CONSTRAINT fk_fato_orgao FOREIGN KEY (sk_orgao) REFERENCES dim_orgao(sk_orgao),
+    CONSTRAINT fk_fato_fornecedor FOREIGN KEY (sk_fornecedor) REFERENCES dim_fornecedor(sk_fornecedor),
+    CONSTRAINT fk_fato_modalidade FOREIGN KEY (sk_modalidade) REFERENCES dim_modalidade(sk_modalidade),
+    CONSTRAINT fk_fato_localidade FOREIGN KEY (sk_localidade) REFERENCES dim_localidade(sk_localidade),
+    
+    -- Travas de segurança do banco
+    CONSTRAINT chk_quantidade CHECK (quantidade > 0),
+    CONSTRAINT chk_valores CHECK (valor_unitario_estimado >= 0 AND valor_unitario_homologado >= 0)
+);
+
