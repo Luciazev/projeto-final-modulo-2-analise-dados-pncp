@@ -1,8 +1,0 @@
-USE pncp_controladoria;
-
--- Limpa caso já exista o registro -1
-DELETE FROM dim_fornecedor WHERE sk_fornecedor = -1;
-
--- Insere corretamente com as colunas exatas da dim_fornecedor
-INSERT INTO dim_fornecedor (sk_fornecedor, ni_fornecedor, nome_fornecedor, tipo_pessoa, porte) 
-VALUES (-1, '00000000000000', 'Não Informado', 'Não informado', 'Não informado');
