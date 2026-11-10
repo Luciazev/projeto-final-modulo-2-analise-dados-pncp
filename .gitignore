@@ -1,0 +1,13 @@
+# Credenciais e configurações privadas
+.env
+.env.*
+
+# Arquivos temporários do Python
+__pycache__/
+*.pyc
+
+# Configurações locais do VS Code
+.vscode/
+
+# Arquivos temporários
+*.log

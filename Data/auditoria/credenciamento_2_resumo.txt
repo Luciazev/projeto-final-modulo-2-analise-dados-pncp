@@ -1,0 +1,14 @@
+AUDITORIA 2 - CREDENCIAMENTO
+================================
+Compras analisadas: 317
+Itens analisados: 819
+Resultados analisados: 10265
+
+Itens com resultados: 667
+Itens com multiplos fornecedores: 395
+Itens Em andamento com resultados: 597
+Itens com divergencia entre estimado e resultados: 496
+Itens classificados como inconsistencias: 658
+
+Relatorios gerados na pasta Data/auditoria.
+Nenhum arquivo Silver, Gold ou MySQL foi alterado.

@@ -1,0 +1,17 @@
+AUDITORIA 1 - CREDENCIAMENTO
+================================
+Compras analisadas: 317
+Compras divergentes: 10
+Itens nas compras divergentes: 200
+Registros de resultados nas compras divergentes: 548
+
+Arquivos gerados:
+- credenciamento_1_conciliacao_compras.csv
+- credenciamento_1_compras_divergentes.csv
+- credenciamento_1_itens_divergentes.csv
+- credenciamento_1_fornecedores_divergentes.csv
+
+Foram calculadas somas com todos os resultados
+e somente com resultados nao cancelados.
+
+Nenhum arquivo Silver, Gold ou MySQL foi alterado.
